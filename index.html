@@ -43,7 +43,9 @@ p{margin:0}
 }
 
 /* ---------- lienzo del video (fijo, detras de todo el sitio) ---------- */
-#capa-video{position:fixed;inset:0;z-index:0;background:#02060c}
+/* alto fijado al viewport GRANDE: la barra del navegador movil aparece y
+   desaparece sin obligar a redimensionar el lienzo (evita el parpadeo) */
+#capa-video{position:fixed;top:0;left:0;width:100%;height:100vh;height:100lvh;z-index:0;background:#02060c}
 #lienzo{width:100%;height:100%;display:block}
 #scrim{
   position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.32;
@@ -123,9 +125,9 @@ main{position:relative;z-index:10}
 .envoltura{max-width:var(--ancho);margin:0 auto;padding:0 28px}
 
 /* ---------- hero ---------- */
-#hero{position:relative;height:220vh}
+#hero{position:relative;height:220vh;height:220svh}
 .hero-fijo{
-  position:sticky;top:0;height:100vh;overflow:hidden;
+  position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;
   display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
 }
 .hero-centro{
@@ -368,18 +370,47 @@ footer{
   .numero:nth-child(2){border-right:0}
   .numero:nth-child(1),.numero:nth-child(2){border-bottom:1px solid var(--linea)}
   .pie-rejilla{grid-template-columns:repeat(2,1fr);gap:34px}
-  #hero{height:200vh}
+  #hero{height:200vh;height:200svh}
   #desliza{display:none}
   .cta-caja{gap:38px}
 }
 @media (max-width:560px){
-  .hero-datos{grid-template-columns:1fr;border-top:0;bottom:26px}
-  .hero-dato{border-right:0;padding-top:10px}
-  .hero-dato b{font-size:19px}
+  :root{--paso:78px}
+  .envoltura{padding:0 20px}
+  .nav-caja{padding:14px 18px;gap:14px}
+  .marca{font-size:12px;letter-spacing:.12em;gap:8px}
+  .marca::before{width:7px;height:7px}
+  .nav-caja .btn{padding:10px 16px;font-size:12px}
+  .cabecera{margin-bottom:44px}
+  .cabecera p{font-size:15px}
+  /* las tres cifras se quedan en fila: se ve simetrico y no invade el titular */
+  .hero-datos{bottom:30px;padding:0 16px}
+  .hero-dato{padding:14px 5px 0}
+  .hero-dato b{font-size:17px}
+  .hero-dato span{margin-top:3px;font-size:9px;letter-spacing:.1em}
+  .hero-centro{gap:20px}
+  .hero-botones{width:100%}
+  .hero-botones .btn{flex:1 1 100%}
+  .feat{padding:30px 24px}
+  .area{padding:26px 22px}
+  .quote{padding:30px 24px;gap:18px}
+  .quote blockquote{font-size:16px}
+  .faq button{padding:20px 20px;font-size:15px}
+  .faq .cuerpo p{padding:0 20px 22px}
+  .numero{padding:28px 12px}
   .tarjeta-form{padding:30px 22px}
   .linea-tiempo{padding-left:42px}
+  .tl-paso{padding-bottom:36px}
   .tl-paso::before{left:-41px}
-  .pie-rejilla{grid-template-columns:1fr}
+  .tl-paso h3{font-size:19px}
+  .pie-rejilla{grid-template-columns:1fr;padding:56px 0 40px;gap:30px}
+  /* menos desenfoque: en telefono cuesta caro y se nota poco */
+  .panel{-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)}
+}
+/* en pantalla tactil el :hover se queda pegado tras tocar */
+@media (hover:none){
+  .feat:hover,.area:hover,.btn:hover,.enviar:hover:not(:disabled){transform:none}
+  .feat:hover::before{opacity:0}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -757,7 +788,7 @@ const HERO = {
   carpeta:      "frames/desktop",
   total:        192,        // <- mismo numero de cuadros que genero el script
   carpetaMovil: "frames/mobile",
-  totalMovil:   0,          // 0 = no hay clip vertical; en movil se recorta el de escritorio
+  totalMovil:   96,         // <- mismo numero de cuadros que genero el script (clip 9:16)
   poster:       "poster.jpg",
   altura:       220,        // en vh: alto del tramo inicial del hero
   easing:       1.0,        // 1.0 = lineal
@@ -786,7 +817,10 @@ const barraFrm = document.getElementById('carga-frames');
 
 const menosMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const usaMovil = window.matchMedia('(max-width: 760px)').matches && HERO.totalMovil > 0;
+/* Se usa el clip vertical solo en pantalla angosta Y en vertical: un telefono
+   acostado tiene forma 16:9 y le queda mejor el set de escritorio. */
+const usaMovil = window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches
+                 && HERO.totalMovil > 0;
 const CARPETA  = usaMovil ? HERO.carpetaMovil : HERO.carpeta;
 const TOTAL    = usaMovil ? HERO.totalMovil   : HERO.total;
 
@@ -797,11 +831,20 @@ const listo = new Array(TOTAL).fill(false);
 let descargados = 0;
 let ultimoIdx = -1;
 
-/* --- tamano del lienzo, con devicePixelRatio limitado a 2 --- */
+/* --- tamano del lienzo, con devicePixelRatio limitado a 2 ---
+   Se mide sobre el contenedor (alto 100lvh), no sobre window.innerHeight:
+   en el telefono la barra del navegador cambia innerHeight al hacer scroll y
+   redimensionar el lienzo en cada gesto provoca parpadeo y tirones. */
+let anchoPrev = 0, altoPrev = 0;
 function medir() {
+  const capa = document.getElementById('capa-video');
+  const w = capa.clientWidth  || window.innerWidth;
+  const h = capa.clientHeight || window.innerHeight;
+  if (w === anchoPrev && h === altoPrev) return;
+  anchoPrev = w; altoPrev = h;
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  lienzo.width  = Math.round(window.innerWidth  * dpr);
-  lienzo.height = Math.round(window.innerHeight * dpr);
+  lienzo.width  = Math.round(w * dpr);
+  lienzo.height = Math.round(h * dpr);
   ultimoIdx = -1;
   pintarAhora();
 }
