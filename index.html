@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swimmer Descending — Natación y buceo en CDMX</title>
+<meta name="description" content="Escuela de natación y buceo en Ciudad de México. Cursos desde cero hasta certificación, venta y renta de equipo de buceo y natación.">
+<style>
+:root{
+  --fondo:#04080f;
+  --fondo-2:#070e18;
+  --texto:#eaf1f7;
+  --tenue:#94a8bb;
+  --acento:#38bdf8;
+  --acento-2:#22d3ee;
+  --linea:rgba(255,255,255,.10);
+  --linea-viva:rgba(56,189,248,.45);
+  --panel:rgba(5,12,22,.62);
+  --panel-solido:rgba(6,14,25,.88);
+  --radio:18px;
+  --ancho:1180px;
+  --paso:130px;
+  --fuente:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--fondo);color:var(--texto);
+  font-family:var(--fuente);font-size:16px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+h1,h2,h3,h4{margin:0;letter-spacing:-.025em;line-height:1.12;font-weight:700}
+p{margin:0}
+
+/* ---------- barra de progreso de scroll ---------- */
+#progreso{
+  position:fixed;top:0;left:0;height:3px;width:0;z-index:90;
+  background:linear-gradient(90deg,var(--acento),var(--acento-2));
+  box-shadow:0 0 14px rgba(56,189,248,.65);
+}
+
+/* ---------- lienzo del video (fijo, detras de todo el sitio) ---------- */
+#capa-video{position:fixed;inset:0;z-index:0;background:#02060c}
+#lienzo{width:100%;height:100%;display:block}
+#scrim{
+  position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.32;
+  background:
+    radial-gradient(120% 78% at 50% 0%,rgba(2,6,12,.28),rgba(2,6,12,.88) 74%),
+    linear-gradient(180deg,rgba(2,6,12,.60) 0%,rgba(2,6,12,.16) 34%,rgba(2,6,12,.82) 100%);
+  transition:opacity .18s linear;
+}
+#vineta{
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  box-shadow:inset 0 0 220px 60px rgba(0,0,0,.70);
+}
+#grano{
+  position:fixed;inset:-120%;z-index:3;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='r'><feTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23r)'/></svg>");
+  animation:granear 640ms steps(3) infinite;
+}
+@keyframes granear{
+  0%{transform:translate(0,0)}33%{transform:translate(-3%,2%)}66%{transform:translate(2%,-3%)}100%{transform:translate(0,0)}
+}
+
+/* ---------- pantalla de carga ---------- */
+#cargando{
+  position:fixed;inset:0;z-index:80;background:var(--fondo);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  transition:opacity .7s ease,visibility .7s ease;
+}
+#cargando.fuera{opacity:0;visibility:hidden}
+#cargando .marca-carga{font-size:13px;letter-spacing:.34em;text-transform:uppercase;color:var(--tenue);font-weight:700}
+#barra-carga{width:190px;height:2px;background:rgba(255,255,255,.12);overflow:hidden;border-radius:2px}
+#barra-carga i{display:block;height:100%;width:8%;background:linear-gradient(90deg,var(--acento),var(--acento-2));transition:width .3s ease}
+#carga-frames{
+  position:fixed;left:0;bottom:0;height:2px;width:0;z-index:70;
+  background:linear-gradient(90deg,rgba(56,189,248,.9),rgba(34,211,238,.9));
+  transition:width .3s ease,opacity .6s ease;
+}
+
+/* ---------- navegacion ---------- */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:60;
+  background:transparent;border-bottom:1px solid transparent;
+  transition:background .45s ease,border-color .45s ease,backdrop-filter .45s ease;
+}
+nav.solida{
+  background:rgba(4,8,15,.72);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  border-bottom-color:var(--linea);
+}
+.nav-caja{
+  max-width:var(--ancho);margin:0 auto;padding:20px 28px;
+  display:flex;align-items:center;justify-content:space-between;gap:28px;
+}
+.marca{
+  font-size:15px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  display:inline-flex;align-items:center;gap:11px;white-space:nowrap;
+}
+.marca::before{
+  content:"";width:9px;height:9px;border-radius:50%;flex:none;
+  background:var(--acento);box-shadow:0 0 14px var(--acento);
+}
+.nav-enlaces{display:flex;align-items:center;gap:34px}
+.nav-enlaces a{font-size:14px;color:var(--tenue);transition:color .25s ease}
+.nav-enlaces a:hover{color:var(--texto)}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:13px 26px;border-radius:999px;border:1px solid transparent;
+  font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:transform .25s ease,box-shadow .25s ease,background .25s ease,border-color .25s ease;
+}
+.btn-lleno{background:var(--acento);color:#03121e;box-shadow:0 10px 32px rgba(56,189,248,.30)}
+.btn-lleno:hover{transform:translateY(-2px);box-shadow:0 16px 42px rgba(56,189,248,.44)}
+.btn-linea{background:rgba(255,255,255,.05);border-color:var(--linea);color:var(--texto)}
+.btn-linea:hover{border-color:var(--linea-viva);transform:translateY(-2px)}
+
+/* ---------- contenido ---------- */
+main{position:relative;z-index:10}
+.envoltura{max-width:var(--ancho);margin:0 auto;padding:0 28px}
+
+/* ---------- hero ---------- */
+#hero{position:relative;height:220vh}
+.hero-fijo{
+  position:sticky;top:0;height:100vh;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+}
+.hero-centro{
+  max-width:900px;padding:0 28px;
+  display:flex;flex-direction:column;align-items:center;gap:26px;
+  will-change:transform,opacity;
+}
+.etiqueta{
+  display:inline-block;padding:8px 18px;border-radius:999px;
+  border:1px solid var(--linea-viva);background:rgba(56,189,248,.10);
+  font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--acento);
+}
+.hero-centro h1{font-size:clamp(40px,7vw,82px);text-shadow:0 6px 44px rgba(0,0,0,.6)}
+.hero-centro h1 em{
+  font-style:normal;
+  background:linear-gradient(100deg,var(--acento),var(--acento-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero-centro>p{max-width:620px;font-size:clamp(16px,1.7vw,19px);color:#cddced;text-shadow:0 2px 20px rgba(0,0,0,.7)}
+.hero-botones{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.hero-datos{
+  position:absolute;left:0;right:0;bottom:46px;
+  display:grid;grid-template-columns:repeat(3,1fr);
+  max-width:820px;margin:0 auto;padding:0 28px;
+  border-top:1px solid var(--linea);will-change:opacity;
+}
+.hero-dato{padding:22px 12px 0;text-align:center;border-right:1px solid var(--linea)}
+.hero-dato:last-child{border-right:0}
+.hero-dato b{display:block;font-size:clamp(20px,2.6vw,30px);font-weight:800;letter-spacing:-.02em}
+.hero-dato span{display:block;margin-top:5px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--tenue)}
+#desliza{
+  position:absolute;right:34px;bottom:124px;
+  display:flex;align-items:center;gap:10px;
+  font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--tenue);
+  transition:opacity .4s ease;
+}
+#desliza i{
+  display:block;width:1px;height:38px;
+  background:linear-gradient(180deg,var(--acento),transparent);
+  animation:caer 1.9s ease-in-out infinite;
+}
+@keyframes caer{0%,100%{transform:scaleY(.4);opacity:.4}50%{transform:scaleY(1);opacity:1}}
+
+/* ---------- secciones ---------- */
+section.bloque{padding:var(--paso) 0;position:relative}
+.cabecera{max-width:720px;margin:0 auto 64px;text-align:center}
+.cabecera .kicker{
+  display:block;margin-bottom:16px;
+  font-size:12px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--acento);
+}
+.cabecera h2{font-size:clamp(30px,4.2vw,50px)}
+.cabecera p{margin-top:18px;color:var(--tenue);font-size:17px}
+
+.panel{
+  background:var(--panel);
+  -webkit-backdrop-filter:blur(16px) saturate(1.15);backdrop-filter:blur(16px) saturate(1.15);
+  border:1px solid var(--linea);border-radius:var(--radio);
+}
+
+/* beneficios */
+.rejilla-3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.feat{position:relative;padding:38px 32px;overflow:hidden;transition:border-color .3s ease,transform .3s ease}
+.feat::before{
+  content:"";position:absolute;inset:0;opacity:0;transition:opacity .35s ease;pointer-events:none;
+  background:radial-gradient(340px circle at var(--mx,50%) var(--my,50%),rgba(56,189,248,.16),transparent 62%);
+}
+.feat:hover{border-color:var(--linea-viva);transform:translateY(-4px)}
+.feat:hover::before{opacity:1}
+.feat .icono{
+  width:52px;height:52px;border-radius:14px;display:grid;place-items:center;margin-bottom:24px;
+  background:rgba(56,189,248,.12);border:1px solid var(--linea-viva);color:var(--acento);
+}
+.feat h3{font-size:20px;margin-bottom:12px}
+.feat p{color:var(--tenue);font-size:15px}
+
+/* programa */
+.linea-tiempo{position:relative;max-width:820px;margin:0 auto;padding-left:56px}
+.linea-tiempo::before{content:"";position:absolute;left:17px;top:8px;bottom:8px;width:2px;background:var(--linea)}
+#relleno-linea{
+  position:absolute;left:17px;top:8px;width:2px;height:calc(100% - 16px);
+  background:linear-gradient(180deg,var(--acento),var(--acento-2));
+  transform:scaleY(0);transform-origin:top;
+}
+.tl-paso{position:relative;padding:0 0 46px}
+.tl-paso:last-child{padding-bottom:0}
+.tl-paso::before{
+  content:"";position:absolute;left:-47px;top:6px;width:16px;height:16px;border-radius:50%;
+  background:var(--fondo-2);border:2px solid var(--linea);
+  transition:border-color .35s ease,box-shadow .35s ease,background .35s ease;
+}
+.tl-paso.viva::before{border-color:var(--acento);background:var(--acento);box-shadow:0 0 18px var(--acento)}
+.tl-paso .num{font-size:11px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--acento)}
+.tl-paso h3{font-size:22px;margin:8px 0 10px}
+.tl-paso p{color:var(--tenue);font-size:15px}
+
+/* areas */
+.rejilla-6{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.area{
+  padding:32px 28px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  transition:border-color .3s ease,transform .3s ease;
+}
+.area:hover{border-color:var(--linea-viva);transform:translateY(-4px)}
+.area .icono{
+  width:46px;height:46px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(34,211,238,.10);border:1px solid var(--linea);color:var(--acento-2);
+}
+.area h3{font-size:17px}
+.area p{color:var(--tenue);font-size:14px}
+.area .raya{width:34px;height:2px;background:var(--linea-viva);border-radius:2px;margin-top:2px}
+
+/* numeros */
+.rejilla-4{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.numero{padding:36px 18px;text-align:center;border-right:1px solid var(--linea)}
+.numero:last-child{border-right:0}
+.cifra{
+  display:block;font-size:clamp(34px,4.6vw,54px);font-weight:800;letter-spacing:-.03em;
+  background:linear-gradient(140deg,#ffffff,var(--acento));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.numero .pie{display:block;margin-top:8px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--tenue)}
+
+/* testimonios */
+.rejilla-2{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+.quote{padding:38px 34px;display:flex;flex-direction:column;gap:24px}
+.quote .comilla{font-size:44px;line-height:1;color:var(--acento);opacity:.55}
+.quote blockquote{margin:0;font-size:17px;line-height:1.7;flex:1}
+.quote .autor{display:flex;align-items:center;gap:14px}
+.quote .avatar{
+  width:46px;height:46px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:linear-gradient(140deg,var(--acento),var(--acento-2));color:#03121e;
+  font-weight:800;font-size:14px;letter-spacing:.04em;
+}
+.quote .autor b{display:block;font-size:15px}
+.quote .autor span{display:block;font-size:13px;color:var(--tenue)}
+
+/* faq */
+.lista-faq{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.faq{overflow:hidden}
+.faq button{
+  width:100%;background:none;border:0;color:inherit;font-family:inherit;cursor:pointer;
+  padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:22px;
+  font-size:16px;font-weight:600;text-align:left;
+}
+.faq button .mas{flex:none;width:22px;height:22px;position:relative;transition:transform .35s ease;color:var(--acento)}
+.faq button .mas::before,.faq button .mas::after{content:"";position:absolute;left:50%;top:50%;background:currentColor;border-radius:2px}
+.faq button .mas::before{width:13px;height:2px;transform:translate(-50%,-50%)}
+.faq button .mas::after{width:2px;height:13px;transform:translate(-50%,-50%);transition:opacity .3s ease}
+.faq.abierta button .mas{transform:rotate(90deg)}
+.faq.abierta button .mas::after{opacity:0}
+.faq .cuerpo{display:grid;grid-template-rows:0fr;transition:grid-template-rows .38s ease}
+.faq.abierta .cuerpo{grid-template-rows:1fr}
+.faq .cuerpo>div{overflow:hidden}
+.faq .cuerpo p{padding:0 28px 26px;color:var(--tenue);font-size:15px}
+
+/* cta + formulario */
+#registro::before{
+  content:"";position:absolute;left:50%;top:50%;width:min(1100px,120vw);height:760px;
+  transform:translate(-50%,-50%);pointer-events:none;z-index:-1;
+  background:radial-gradient(closest-side,rgba(56,189,248,.16),transparent);
+}
+.cta-caja{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.cta-texto h2{font-size:clamp(30px,4vw,46px);margin-bottom:20px}
+.cta-texto>p{color:var(--tenue);font-size:17px;margin-bottom:30px}
+.checks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.checks li{display:flex;align-items:flex-start;gap:13px;font-size:15px}
+.checks li::before{
+  content:"";flex:none;margin-top:3px;width:19px;height:19px;border-radius:50%;
+  background-color:rgba(56,189,248,.14);border:1px solid var(--linea-viva);
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>");
+  background-size:12px;background-repeat:no-repeat;background-position:center;
+}
+.tarjeta-form{background:var(--panel-solido);padding:40px 36px}
+.tarjeta-form h3{font-size:22px;margin-bottom:8px}
+.tarjeta-form .sub{color:var(--tenue);font-size:14px;margin-bottom:28px}
+.campo{margin-bottom:18px}
+.campo label{display:block;margin-bottom:8px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--tenue)}
+.campo input,.campo select{
+  width:100%;padding:14px 16px;font-family:inherit;font-size:15px;
+  color:var(--texto);background:rgba(255,255,255,.04);
+  border:1px solid var(--linea);border-radius:12px;outline:none;
+  transition:border-color .25s ease,background .25s ease,box-shadow .25s ease;
+}
+.campo input:focus,.campo select:focus{
+  border-color:var(--acento);background:rgba(56,189,248,.07);box-shadow:0 0 0 4px rgba(56,189,248,.12);
+}
+.campo select{
+  appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:44px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a8bb' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat:no-repeat;background-position:right 15px center;background-size:17px;
+}
+.campo select option{background:#0a1421;color:var(--texto)}
+.enviar{
+  width:100%;margin-top:10px;padding:16px 22px;border:0;border-radius:12px;cursor:pointer;
+  font-family:inherit;font-size:15px;font-weight:800;color:#03121e;
+  background:linear-gradient(100deg,var(--acento),var(--acento-2));
+  box-shadow:0 12px 34px rgba(56,189,248,.28);
+  transition:transform .25s ease,box-shadow .25s ease,opacity .25s ease;
+}
+.enviar:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 18px 44px rgba(56,189,248,.4)}
+.enviar:disabled{opacity:.6;cursor:default}
+.mensaje{margin-top:14px;font-size:14px;text-align:center;min-height:20px}
+.mensaje.error{color:#fca5a5}
+.aviso{margin-top:16px;font-size:12px;color:var(--tenue);text-align:center}
+.exito{display:none;text-align:center;padding:26px 6px}
+.exito .tic{
+  width:64px;height:64px;margin:0 auto 22px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(56,189,248,.14);border:1px solid var(--linea-viva);color:var(--acento);
+}
+.exito h3{font-size:22px;margin-bottom:10px}
+.exito p{color:var(--tenue);font-size:15px}
+
+/* footer */
+footer{
+  position:relative;z-index:10;background:rgba(3,7,13,.90);border-top:1px solid var(--linea);
+  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+}
+.pie-rejilla{display:grid;grid-template-columns:repeat(4,1fr);gap:40px;padding:74px 0 54px}
+.pie-col h4{font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;margin:0 0 18px}
+.pie-col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+.pie-col li,.pie-col a{font-size:14px;color:var(--tenue);transition:color .25s ease}
+.pie-col a:hover{color:var(--acento)}
+.pie-col .desc{font-size:14px;color:var(--tenue);margin-top:16px}
+.pie-linea{
+  border-top:1px solid var(--linea);padding:24px 0 34px;
+  display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  font-size:13px;color:var(--tenue);
+}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}
+.reveal.visible{opacity:1;transform:none}
+
+/* responsivo */
+@media (max-width:960px){
+  :root{--paso:96px}
+  .nav-enlaces{display:none}
+  .rejilla-3,.rejilla-6,.rejilla-2,.cta-caja{grid-template-columns:1fr}
+  .rejilla-4{grid-template-columns:repeat(2,1fr)}
+  .numero:nth-child(2){border-right:0}
+  .numero:nth-child(1),.numero:nth-child(2){border-bottom:1px solid var(--linea)}
+  .pie-rejilla{grid-template-columns:repeat(2,1fr);gap:34px}
+  #hero{height:200vh}
+  #desliza{display:none}
+  .cta-caja{gap:38px}
+}
+@media (max-width:560px){
+  .hero-datos{grid-template-columns:1fr;border-top:0;bottom:26px}
+  .hero-dato{border-right:0;padding-top:10px}
+  .hero-dato b{font-size:19px}
+  .tarjeta-form{padding:30px 22px}
+  .linea-tiempo{padding-left:42px}
+  .tl-paso::before{left:-41px}
+  .pie-rejilla{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  #grano{animation:none}
+  #desliza i{animation:none}
+  .reveal{transition-duration:.01ms}
+}
+</style>
+</head>
+<body>
+
+<div id="progreso"></div>
+
+<!-- El video vive aqui: fijo detras de TODA la pagina y avanzando con el scroll -->
+<div id="capa-video"><canvas id="lienzo"></canvas></div>
+<div id="scrim"></div>
+<div id="vineta"></div>
+<div id="grano"></div>
+<div id="carga-frames"></div>
+
+<div id="cargando">
+  <span class="marca-carga">Swimmer Descending</span>
+  <div id="barra-carga"><i></i></div>
+</div>
+
+<nav id="nav">
+  <div class="nav-caja">
+    <a href="#hero" class="marca">Swimmer Descending</a>
+    <div class="nav-enlaces">
+      <a href="#beneficios">Escuela</a>
+      <a href="#programa">Programa</a>
+      <a href="#areas">Servicios</a>
+      <a href="#preguntas">Preguntas</a>
+    </div>
+    <a href="#registro" class="btn btn-lleno">Reservar mi lugar</a>
+  </div>
+</nav>
+
+<main>
+
+  <!-- ================= HERO ================= -->
+  <section id="hero">
+    <div class="hero-fijo">
+      <div class="hero-centro" id="hero-centro">
+        <span class="etiqueta">Natación y buceo · Ciudad de México</span>
+        <h1>Aprende a nadar.<br><em>Después, desciende.</em></h1>
+        <p>Escuela de natación y buceo en CDMX. Del primer contacto con el agua hasta tu certificación en aguas abiertas, con venta y renta de equipo profesional.</p>
+        <div class="hero-botones">
+          <a href="#registro" class="btn btn-lleno">Reservar mi lugar</a>
+          <a href="#programa" class="btn btn-linea">Ver el programa</a>
+        </div>
+      </div>
+      <div class="hero-datos" id="hero-datos">
+        <div class="hero-dato"><b>12</b><span>Alumnos por grupo</span></div>
+        <div class="hero-dato"><b>5 niveles</b><span>De cero a certificación</span></div>
+        <div class="hero-dato"><b>CDMX</b><span>Alberca techada</span></div>
+      </div>
+      <div id="desliza"><span>Desliza</span><i></i></div>
+    </div>
+  </section>
+
+  <!-- ================= BENEFICIOS ================= -->
+  <section class="bloque" id="beneficios">
+    <div class="envoltura">
+      <div class="cabecera reveal">
+        <span class="kicker">Por qué con nosotros</span>
+        <h2>Una escuela pensada para el agua profunda</h2>
+        <p>No enseñamos a sobrevivir en la alberca. Enseñamos técnica, respiración y seguridad, en ese orden, hasta que el agua deja de dar miedo.</p>
+      </div>
+      <div class="rejilla-3">
+        <article class="panel feat reveal">
+          <div class="icono">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>Grupos de máximo 12</h3>
+          <p>El instructor corrige tu brazada, no la del grupo. En cursos de buceo la proporción baja a cuatro alumnos por instructor dentro del agua.</p>
+        </article>
+        <article class="panel feat reveal">
+          <div class="icono">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+          </div>
+          <h3>Instructores certificados</h3>
+          <p>Todo el equipo docente cuenta con certificación vigente de buceo y protocolo de seguridad acuática, con revisión anual.</p>
+        </article>
+        <article class="panel feat reveal">
+          <div class="icono">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21V8a4 4 0 0 1 8 0v13"/><path d="M6 21h12"/><path d="M10 4h4"/><path d="M8 13h8"/></svg>
+          </div>
+          <h3>Equipo incluido y a la venta</h3>
+          <p>Empiezas con equipo de la escuela. Cuando ya sabes qué te acomoda, te lo vendemos o te lo rentamos por temporada.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PROGRAMA ================= -->
+  <section class="bloque" id="programa">
+    <div class="envoltura">
+      <div class="cabecera reveal">
+        <span class="kicker">El programa</span>
+        <h2>Cinco niveles, un solo descenso</h2>
+        <p>Cada nivel dura entre cuatro y seis semanas. Puedes entrar en el que te corresponda después de una valoración sin costo.</p>
+      </div>
+      <div class="linea-tiempo" id="linea-tiempo">
+        <div id="relleno-linea"></div>
+        <div class="tl-paso reveal">
+          <span class="num">Nivel 01</span>
+          <h3>Adaptación al agua</h3>
+          <p>Flotación, control de la respiración y pérdida del miedo. El nivel donde la mayoría descubre que el problema nunca fue el agua.</p>
+        </div>
+        <div class="tl-paso reveal">
+          <span class="num">Nivel 02</span>
+          <h3>Técnica de nado</h3>
+          <p>Crol y dorso completos, con coordinación de patada, brazada y respiración lateral. Se nada de forma continua, sin detenerse en la orilla.</p>
+        </div>
+        <div class="tl-paso reveal">
+          <span class="num">Nivel 03</span>
+          <h3>Resistencia y estilos</h3>
+          <p>Pecho y mariposa, series de distancia y trabajo aeróbico. Al terminar, se nadan 400 metros continuos con técnica limpia.</p>
+        </div>
+        <div class="tl-paso reveal">
+          <span class="num">Nivel 04</span>
+          <h3>Iniciación al buceo</h3>
+          <p>Apnea, compensación, manejo de visor, snorkel y aletas, y primeras inmersiones con equipo autónomo en alberca profunda.</p>
+        </div>
+        <div class="tl-paso reveal">
+          <span class="num">Nivel 05</span>
+          <h3>Certificación en aguas abiertas</h3>
+          <p>Teoría, planeación de inmersión y prácticas en mar. Se cierra con la certificación que te permite bucear en cualquier destino.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= AREAS / SERVICIOS ================= -->
+  <section class="bloque" id="areas">
+    <div class="envoltura">
+      <div class="cabecera reveal">
+        <span class="kicker">Servicios</span>
+        <h2>Todo lo que necesitas, en un solo lugar</h2>
+        <p>Cursos, certificaciones y equipo. No tienes que armar tu equipo por tu cuenta ni adivinar qué talla de aletas te queda.</p>
+      </div>
+      <div class="rejilla-6">
+        <article class="panel area reveal">
+          <div class="icono"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16c2 0 2-1.5 4-1.5S8 16 10 16s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/><path d="M2 21c2 0 2-1.5 4-1.5S8 21 10 21s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/><circle cx="17" cy="5" r="2"/><path d="M6 14l4-4 3 2"/></svg></div>
+          <h3>Natación para adultos</h3>
+          <span class="raya"></span>
+          <p>Desde cero o para corregir técnica. Grupos por nivel, nunca por edad.</p>
+        </article>
+        <article class="panel area reveal">
+          <div class="icono"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3"/><path d="M6 21v-3a6 6 0 0 1 12 0v3"/><path d="M9 13h6"/></svg></div>
+          <h3>Natación infantil</h3>
+          <span class="raya"></span>
+          <p>Desde los 4 años, con enfoque en seguridad acuática y juego dirigido.</p>
+        </article>
+        <article class="panel area reveal">
+          <div class="icono"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6"/><path d="M12 22a6 6 0 0 0 6-6c0-3-6-8-6-8s-6 5-6 8a6 6 0 0 0 6 6z"/></svg></div>
+          <h3>Apnea y buceo libre</h3>
+          <span class="raya"></span>
+          <p>Técnica de respiración, compensación y descenso sin equipo autónomo.</p>
+        </article>
+        <article class="panel area reveal">
+          <div class="icono"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="6" width="10" height="14" rx="4"/><path d="M9 6V4h6v2"/><path d="M17 10h3a2 2 0 0 1 2 2v3"/></svg></div>
+          <h3>Buceo con equipo</h3>
+          <span class="raya"></span>
+          <p>Scuba desde la primera inmersión hasta certificación en aguas abiertas.</p>
+        </article>
+        <article class="panel area reveal">
+          <div class="icono"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></div>
+          <h3>Renta de equipo</h3>
+          <span class="raya"></span>
+          <p>Por día, fin de semana o temporada. Revisado y sanitizado antes de cada salida.</p>
+        </article>
+        <article class="panel area reveal">
+          <div class="icono"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+          <h3>Venta de equipo</h3>
+          <span class="raya"></span>
+          <p>Visores, aletas, trajes y reguladores. Te ayudamos a elegir talla y nivel.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= NUMEROS ================= -->
+  <section class="bloque" id="numeros">
+    <div class="envoltura">
+      <!-- [AJUSTAR] Cambia los data-to por las cifras reales de la escuela -->
+      <div class="panel rejilla-4 reveal">
+        <div class="numero"><b class="cifra" data-to="1200" data-suf="+">0</b><span class="pie">Alumnos formados</span></div>
+        <div class="numero"><b class="cifra" data-to="9">0</b><span class="pie">Años enseñando</span></div>
+        <div class="numero"><b class="cifra" data-to="340" data-suf="+">0</b><span class="pie">Buzos certificados</span></div>
+        <div class="numero"><b class="cifra" data-to="4.9" data-dec="1">0</b><span class="pie">Calificación promedio</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TESTIMONIOS ================= -->
+  <section class="bloque" id="testimonios">
+    <div class="envoltura">
+      <div class="cabecera reveal">
+        <span class="kicker">Testimonios</span>
+        <h2>Lo que dicen quienes ya bajaron</h2>
+      </div>
+      <!-- [AJUSTAR] Sustituye por testimonios reales de alumnos -->
+      <div class="rejilla-2">
+        <article class="panel quote reveal">
+          <span class="comilla">&ldquo;</span>
+          <blockquote>Llegué a los 38 años sin saber flotar y con miedo real al agua. En el tercer mes nadé 400 metros seguidos. Hoy ya tengo mi certificación de buceo y planeo mi primer viaje a Cozumel.</blockquote>
+          <div class="autor">
+            <div class="avatar">MR</div>
+            <div><b>Mariana Ruiz</b><span>Alumna del nivel 5</span></div>
+          </div>
+        </article>
+        <article class="panel quote reveal">
+          <span class="comilla">&ldquo;</span>
+          <blockquote>Inscribí a mi hija de seis años y terminé inscribiéndome yo. Lo que más valoro es que corrigen de verdad: cada clase te dicen exactamente qué cambiar.</blockquote>
+          <div class="autor">
+            <div class="avatar">JC</div>
+            <div><b>Javier Cortés</b><span>Papá y alumno del nivel 3</span></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FAQ ================= -->
+  <section class="bloque" id="preguntas">
+    <div class="envoltura">
+      <div class="cabecera reveal">
+        <span class="kicker">Preguntas frecuentes</span>
+        <h2>Lo que más nos preguntan</h2>
+      </div>
+      <div class="lista-faq">
+        <div class="panel faq reveal">
+          <button type="button" aria-expanded="false"><span>¿Necesito saber nadar para tomar el curso de buceo?</span><span class="mas" aria-hidden="true"></span></button>
+          <div class="cuerpo"><div><p>Sí. Para entrar al nivel 4 pedimos que nades 200 metros de forma continua y flotes 10 minutos sin apoyo. Si todavía no llegas ahí, empiezas en el nivel que te corresponda; la valoración es sin costo.</p></div></div>
+        </div>
+        <div class="panel faq reveal">
+          <button type="button" aria-expanded="false"><span>¿Qué debo llevar a la primera clase?</span><span class="mas" aria-hidden="true"></span></button>
+          <div class="cuerpo"><div><p>Traje de baño, goggles, gorra y toalla. Todo lo demás lo presta la escuela durante los primeros tres niveles: tabla, pull buoy, aletas y snorkel.</p></div></div>
+        </div>
+        <div class="panel faq reveal">
+          <button type="button" aria-expanded="false"><span>¿Los cursos son también para niños?</span><span class="mas" aria-hidden="true"></span></button>
+          <div class="cuerpo"><div><p>Sí, desde los 4 años en grupos separados de adultos, con enfoque en seguridad acuática. El buceo con equipo autónomo se abre a partir de los 12 años.</p></div></div>
+        </div>
+        <div class="panel faq reveal">
+          <button type="button" aria-expanded="false"><span>¿Puedo rentar el equipo en lugar de comprarlo?</span><span class="mas" aria-hidden="true"></span></button>
+          <div class="cuerpo"><div><p>Sí. Rentamos por día, por fin de semana o por temporada, y el monto de la renta se descuenta si después decides comprar ese mismo equipo con nosotros.</p></div></div>
+        </div>
+        <div class="panel faq reveal">
+          <button type="button" aria-expanded="false"><span>¿Dónde están y cuáles son los horarios?</span><span class="mas" aria-hidden="true"></span></button>
+          <!-- [AJUSTAR] Pon la direccion y los horarios reales -->
+          <div class="cuerpo"><div><p>Estamos en Ciudad de México, con alberca techada y climatizada. Hay horarios de lunes a sábado, por la mañana y por la tarde. Déjanos tus datos y te mandamos el calendario del mes.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CTA + FORMULARIO ================= -->
+  <section class="bloque" id="registro">
+    <div class="envoltura">
+      <div class="cta-caja">
+        <div class="cta-texto reveal">
+          <span class="kicker" style="display:block;margin-bottom:16px;font-size:12px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--acento)">Reserva</span>
+          <h2>Tu primer descenso empieza con un formulario</h2>
+          <p>Déjanos tus datos y te enviamos por correo el temario completo, los horarios del mes y el costo de cada nivel.</p>
+          <ul class="checks">
+            <li>Valoración inicial sin costo para ubicar tu nivel</li>
+            <li>Temario y calendario en tu correo, en segundos</li>
+            <li>Equipo básico incluido durante los primeros niveles</li>
+            <li>Sin permanencia: pagas por nivel, no por año</li>
+          </ul>
+        </div>
+
+        <div class="panel tarjeta-form reveal">
+          <div id="formulario">
+            <h3>Aparta tu lugar</h3>
+            <p class="sub">Respondemos el mismo día hábil.</p>
+
+            <div class="campo">
+              <label for="nombre">Nombre completo</label>
+              <input type="text" id="nombre" name="nombre" required>
+            </div>
+            <div class="campo">
+              <label for="correo">Correo electrónico</label>
+              <input type="email" id="correo" name="correo" required>
+            </div>
+            <div class="campo">
+              <label for="telefono">Teléfono</label>
+              <input type="tel" id="telefono" name="telefono" required>
+            </div>
+            <div class="campo">
+              <label for="ocupacion">Ocupación o puesto</label>
+              <input type="text" id="ocupacion" name="ocupacion" required>
+            </div>
+            <div class="campo">
+              <label for="interes">¿Qué te interesa?</label>
+              <select id="interes" name="interes" required>
+                <option value="">Selecciona una opción</option>
+                <option value="Aprender a nadar">Aprender a nadar</option>
+                <option value="Aprender a bucear">Aprender a bucear</option>
+                <option value="Renta de equipo">Renta de equipo</option>
+                <option value="Comprar productos de buceo">Comprar productos de buceo</option>
+              </select>
+            </div>
+            <button class="enviar" id="btnEnviar">Enviar mis datos</button>
+            <div class="mensaje" id="mensajeError"></div>
+            <p class="aviso">Usamos tus datos solo para enviarte la información del curso.</p>
+          </div>
+
+          <div class="exito" id="exito">
+            <div class="tic">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h3>Listo, ya te tenemos</h3>
+            <p>En unos segundos te llega un correo con el temario y los horarios. Si no aparece, revisa la carpeta de correo no deseado.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="envoltura">
+    <div class="pie-rejilla">
+      <div class="pie-col">
+        <span class="marca">Swimmer Descending</span>
+        <p class="desc">Escuela de natación y buceo en Ciudad de México. Cursos, certificaciones, venta y renta de equipo.</p>
+      </div>
+      <div class="pie-col">
+        <h4>Programa</h4>
+        <ul>
+          <li><a href="#programa">Adaptación al agua</a></li>
+          <li><a href="#programa">Técnica de nado</a></li>
+          <li><a href="#programa">Resistencia y estilos</a></li>
+          <li><a href="#programa">Iniciación al buceo</a></li>
+          <li><a href="#programa">Certificación</a></li>
+        </ul>
+      </div>
+      <div class="pie-col">
+        <h4>Escuela</h4>
+        <ul>
+          <li><a href="#beneficios">Por qué con nosotros</a></li>
+          <li><a href="#areas">Servicios</a></li>
+          <li><a href="#testimonios">Testimonios</a></li>
+          <li><a href="#preguntas">Preguntas frecuentes</a></li>
+        </ul>
+      </div>
+      <!-- [AJUSTAR] Datos de contacto reales -->
+      <div class="pie-col">
+        <h4>Contacto</h4>
+        <ul>
+          <li>Ciudad de México</li>
+          <li>WhatsApp 000 000 0000</li>
+          <li>hola@swimmerdescending.mx</li>
+          <li>Lunes a sábado</li>
+        </ul>
+      </div>
+    </div>
+    <div class="pie-linea">
+      <span>© <span id="anio">2026</span> Swimmer Descending · Ciudad de México</span>
+      <span>Natación · Buceo · Equipo</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   1. CONFIGURACION
+   ========================================================= */
+const HERO = {
+  usarFrames:   true,
+  carpeta:      "frames/desktop",
+  total:        192,        // <- mismo numero de cuadros que genero el script
+  carpetaMovil: "frames/mobile",
+  totalMovil:   0,          // 0 = no hay clip vertical; en movil se recorta el de escritorio
+  poster:       "poster.jpg",
+  altura:       220,        // en vh: alto del tramo inicial del hero
+  easing:       1.0,        // 1.0 = lineal
+  concurrencia: 6,
+  video:        "hero.mp4"
+};
+
+const WEBHOOK_URL = "https://n8n-production-bd35f6.up.railway.app/webhook/c87a4166-4550-4f77-ae94-ad1306976cff";
+const ORIGEN = "Swimmer Descending";
+
+/* =========================================================
+   2. HERO POR FRAMES  (el video avanza con el scroll de TODA la pagina)
+   ========================================================= */
+const lienzo   = document.getElementById('lienzo');
+const ctx      = lienzo.getContext('2d', { alpha: false });
+const scrim    = document.getElementById('scrim');
+const navBar   = document.getElementById('nav');
+const heroSec  = document.getElementById('hero');
+const heroMid  = document.getElementById('hero-centro');
+const heroNums = document.getElementById('hero-datos');
+const desliza  = document.getElementById('desliza');
+const barraTop = document.getElementById('progreso');
+const cargando = document.getElementById('cargando');
+const barraCar = document.querySelector('#barra-carga i');
+const barraFrm = document.getElementById('carga-frames');
+
+const menosMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const usaMovil = window.matchMedia('(max-width: 760px)').matches && HERO.totalMovil > 0;
+const CARPETA  = usaMovil ? HERO.carpetaMovil : HERO.carpeta;
+const TOTAL    = usaMovil ? HERO.totalMovil   : HERO.total;
+
+const ruta = n => CARPETA + '/frame_' + String(n).padStart(4, '0') + '.webp';
+
+const imgs  = new Array(TOTAL);
+const listo = new Array(TOTAL).fill(false);
+let descargados = 0;
+let ultimoIdx = -1;
+
+/* --- tamano del lienzo, con devicePixelRatio limitado a 2 --- */
+function medir() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  lienzo.width  = Math.round(window.innerWidth  * dpr);
+  lienzo.height = Math.round(window.innerHeight * dpr);
+  ultimoIdx = -1;
+  pintarAhora();
+}
+
+/* --- dibujado tipo "cover" --- */
+function dibujarImagen(img) {
+  if (!img || !img.naturalWidth) return;
+  const cw = lienzo.width, ch = lienzo.height;
+  const r  = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
+  const w  = img.naturalWidth * r, h = img.naturalHeight * r;
+  ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
+}
+
+/* --- si el frame exacto no cargo aun, se usa el mas cercano que si --- */
+function masCercano(i) {
+  if (listo[i]) return imgs[i];
+  for (let d = 1; d < TOTAL; d++) {
+    if (i - d >= 0    && listo[i - d]) return imgs[i - d];
+    if (i + d < TOTAL && listo[i + d]) return imgs[i + d];
+  }
+  return null;
+}
+
+function cargarFrame(i) {
+  return new Promise(res => {
+    const img = new Image();
+    img.decoding = 'async';
+    img.onload = () => {
+      listo[i] = true; descargados++; avanceCarga();
+      if (i === ultimoIdx) dibujarImagen(img);
+      res(img);
+    };
+    img.onerror = () => { descargados++; avanceCarga(); res(null); };
+    img.src = ruta(i + 1);
+    imgs[i] = img;
+  });
+}
+
+function avanceCarga() {
+  const p = descargados / TOTAL;
+  barraFrm.style.width = (p * 100) + '%';
+  if (descargados >= TOTAL) barraFrm.style.opacity = '0';
+}
+
+async function cargarResto() {
+  let siguiente = 1;
+  const obrero = async () => {
+    while (siguiente < TOTAL) { await cargarFrame(siguiente++); }
+  };
+  await Promise.all(Array.from({ length: HERO.concurrencia }, obrero));
+}
+
+/* --- arranque: poster primero, luego frame 1, luego el resto --- */
+function arrancar() {
+  const poster = new Image();
+  poster.onload = () => { if (ultimoIdx < 0) dibujarImagen(poster); };
+  poster.src = HERO.poster;
+
+  barraCar.style.width = '35%';
+  cargarFrame(0).then(img => {
+    barraCar.style.width = '100%';
+    if (img) { ultimoIdx = 0; dibujarImagen(img); }
+    setTimeout(() => cargando.classList.add('fuera'), 260);
+    cargarResto();
+  });
+}
+
+/* =========================================================
+   3. SCROLL: un solo bucle para todo
+   ========================================================= */
+const lineaTiempo = document.getElementById('linea-tiempo');
+const rellenoLin  = document.getElementById('relleno-linea');
+const pasos       = Array.prototype.slice.call(document.querySelectorAll('.tl-paso'));
+
+let pendiente = false;
+function alScroll() {
+  if (!pendiente) { pendiente = true; requestAnimationFrame(pintarAhora); }
+}
+
+function pintarAhora() {
+  pendiente = false;
+
+  const alto  = window.innerHeight;
+  const y     = window.pageYOffset || document.documentElement.scrollTop;
+  const largo = document.documentElement.scrollHeight - alto;
+  const p     = largo > 0 ? Math.min(1, Math.max(0, y / largo)) : 0;
+
+  /* barra superior de progreso */
+  barraTop.style.width = (p * 100) + '%';
+
+  /* frame correspondiente al avance de TODA la pagina */
+  const idx = Math.round(Math.pow(p, HERO.easing) * (TOTAL - 1));
+  if (idx !== ultimoIdx) {
+    ultimoIdx = idx;
+    dibujarImagen(masCercano(idx));
+  }
+
+  /* el scrim se oscurece al pasar del hero para que el texto se lea */
+  const recorridoHero = Math.max(1, heroSec.offsetHeight - alto);
+  const th = Math.min(1, y / (recorridoHero * 0.85));
+  scrim.style.opacity = (0.32 + th * 0.50).toFixed(3);
+
+  /* barra de navegacion */
+  navBar.classList.toggle('solida', y > alto * 0.85);
+
+  /* salida del contenido del hero */
+  const salida = Math.max(0, Math.min(1, (y / recorridoHero - 0.50) / 0.50));
+  heroMid.style.opacity   = (1 - salida).toFixed(3);
+  heroMid.style.transform = 'translateY(' + (-salida * 70).toFixed(1) + 'px)';
+  heroNums.style.opacity  = (1 - Math.min(1, salida * 1.6)).toFixed(3);
+  if (desliza) desliza.style.opacity = y > 120 ? '0' : '1';
+
+  /* linea del programa */
+  if (lineaTiempo && rellenoLin) {
+    const r = lineaTiempo.getBoundingClientRect();
+    const v = (alto * 0.62 - r.top) / Math.max(1, r.height);
+    rellenoLin.style.transform = 'scaleY(' + Math.min(1, Math.max(0, v)).toFixed(3) + ')';
+    for (let i = 0; i < pasos.length; i++) {
+      const pr = pasos[i].getBoundingClientRect();
+      pasos[i].classList.toggle('viva', pr.top < alto * 0.62);
+    }
+  }
+}
+
+/* =========================================================
+   4. REVEAL AL ENTRAR EN PANTALLA
+   ========================================================= */
+const ojo = new IntersectionObserver((entradas) => {
+  entradas.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); ojo.unobserve(e.target); }
+  });
+}, { threshold: 0.14, rootMargin: '0px 0px -60px 0px' });
+document.querySelectorAll('.reveal').forEach(el => ojo.observe(el));
+
+/* =========================================================
+   5. CONTADORES
+   ========================================================= */
+function contar(el) {
+  const fin = parseFloat(el.getAttribute('data-to')) || 0;
+  const dec = parseInt(el.getAttribute('data-dec') || '0', 10);
+  const suf = el.getAttribute('data-suf') || '';
+  if (menosMovimiento) { el.textContent = fin.toFixed(dec) + suf; return; }
+  const dura = 1600;
+  const t0 = performance.now();
+  function paso(t) {
+    const k = Math.min(1, (t - t0) / dura);
+    const e = 1 - Math.pow(1 - k, 3);
+    el.textContent = (fin * e).toFixed(dec) + suf;
+    if (k < 1) requestAnimationFrame(paso);
+  }
+  requestAnimationFrame(paso);
+}
+const ojoNum = new IntersectionObserver((entradas) => {
+  entradas.forEach(e => {
+    if (e.isIntersecting) { contar(e.target); ojoNum.unobserve(e.target); }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.cifra').forEach(el => ojoNum.observe(el));
+
+/* =========================================================
+   6. FAQ (acordeon accesible)
+   ========================================================= */
+document.querySelectorAll('.faq button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const caja = btn.parentElement;
+    const abierta = caja.classList.toggle('abierta');
+    btn.setAttribute('aria-expanded', abierta ? 'true' : 'false');
+  });
+});
+
+/* =========================================================
+   7. BRILLO QUE SIGUE AL CURSOR EN LAS TARJETAS
+   ========================================================= */
+document.querySelectorAll('.feat').forEach(t => {
+  t.addEventListener('mousemove', ev => {
+    const r = t.getBoundingClientRect();
+    t.style.setProperty('--mx', (ev.clientX - r.left) + 'px');
+    t.style.setProperty('--my', (ev.clientY - r.top) + 'px');
+  });
+});
+
+/* =========================================================
+   8. FORMULARIO -> n8n   (contrato: 7 campos, nombres fijos)
+   ========================================================= */
+const btn      = document.getElementById('btnEnviar');
+const errorBox = document.getElementById('mensajeError');
+const formDiv  = document.getElementById('formulario');
+const exitoDiv = document.getElementById('exito');
+
+function mostrarError(t) { errorBox.textContent = t; errorBox.className = 'mensaje error'; }
+
+btn.addEventListener('click', async function () {
+  const datos = {
+    nombre:     document.getElementById('nombre').value.trim(),
+    correo:     document.getElementById('correo').value.trim(),
+    telefono:   document.getElementById('telefono').value.trim(),
+    ocupacion:  document.getElementById('ocupacion').value.trim(),
+    interes:    document.getElementById('interes').value,
+    origen:     ORIGEN,
+    enviado_en: new Date().toISOString()
+  };
+  if (!datos.nombre || !datos.correo || !datos.telefono || !datos.ocupacion || !datos.interes) {
+    mostrarError('Por favor llena todos los campos.'); return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datos.correo)) {
+    mostrarError('El correo no parece válido. Revísalo por favor.'); return;
+  }
+  errorBox.className = 'mensaje';
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    const r = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datos)
+    });
+    if (!r.ok) throw new Error('error');
+    formDiv.style.display = 'none';
+    exitoDiv.style.display = 'block';
+  } catch (e) {
+    mostrarError('No se pudo enviar. Inténtalo de nuevo en un momento.');
+    btn.disabled = false; btn.textContent = 'Enviar mis datos';
+  }
+});
+
+/* =========================================================
+   9. PUESTA EN MARCHA
+   ========================================================= */
+document.getElementById('anio').textContent = new Date().getFullYear();
+window.addEventListener('scroll', alScroll, { passive: true });
+window.addEventListener('resize', medir);
+medir();
+pintarAhora();
+arrancar();
+</script>
+</body>
+</html>
