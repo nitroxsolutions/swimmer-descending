@@ -341,20 +341,22 @@ section.bloque{padding:var(--paso) 0;position:relative}
 .exito p{color:var(--tenue);font-size:15px}
 
 /* footer */
+/* traslucido, no un bloque negro: el agua se sigue viendo detras */
 footer{
-  position:relative;z-index:10;background:rgba(3,7,13,.90);border-top:1px solid var(--linea);
-  -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+  position:relative;z-index:10;background:rgba(4,9,17,.55);border-top:1px solid var(--linea);
+  -webkit-backdrop-filter:blur(22px) saturate(1.2);backdrop-filter:blur(22px) saturate(1.2);
 }
 .pie-rejilla{display:grid;grid-template-columns:repeat(4,1fr);gap:40px;padding:74px 0 54px}
 .pie-col h4{font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;margin:0 0 18px}
 .pie-col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
-.pie-col li,.pie-col a{font-size:14px;color:var(--tenue);transition:color .25s ease}
+/* un punto mas claro que --tenue: el fondo ya no es solido */
+.pie-col li,.pie-col a{font-size:14px;color:#aabed0;transition:color .25s ease}
 .pie-col a:hover{color:var(--acento)}
-.pie-col .desc{font-size:14px;color:var(--tenue);margin-top:16px}
+.pie-col .desc{font-size:14px;color:#aabed0;margin-top:16px}
 .pie-linea{
   border-top:1px solid var(--linea);padding:24px 0 34px;
   display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
-  font-size:13px;color:var(--tenue);
+  font-size:13px;color:#9db1c3;
 }
 
 /* reveal */
@@ -795,11 +797,12 @@ const HERO = {
   concurrencia: 6,
   video:        "hero.mp4",
   /* Que tanto se acerca la imagen. 1 = llena la pantalla recortando;
-     0 = se ve el cuadro completo, mas alejado. El clip vertical viene
-     encuadrado muy cerca, por eso en telefono se baja. Sube o baja
-     "movil" a gusto: 0.15 esta cerca del cuadro completo. */
+     0 = se ve el cuadro completo con franjas del color del fondo.
+     Los dos van en 1: el alejamiento del clip vertical ya viene dentro
+     de los propios cuadros (build-frames.ps1 los pinta mas chicos sobre
+     un fondo desenfocado), asi que aqui basta con llenar la pantalla. */
   encuadre:      1.00,
-  encuadreMovil: 0.15
+  encuadreMovil: 1.00
 };
 
 const WEBHOOK_URL = "https://n8n-production-bd35f6.up.railway.app/webhook/c87a4166-4550-4f77-ae94-ad1306976cff";
