@@ -56,10 +56,10 @@ p{margin:0}
 }
 #vineta{
   position:fixed;inset:0;z-index:2;pointer-events:none;
-  box-shadow:inset 0 0 220px 60px rgba(0,0,0,.70);
+  box-shadow:inset 0 0 200px 44px rgba(0,0,0,.55);
 }
 #grano{
-  position:fixed;inset:-120%;z-index:3;pointer-events:none;opacity:.05;
+  position:fixed;inset:-120%;z-index:3;pointer-events:none;opacity:.04;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='r'><feTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23r)'/></svg>");
   animation:granear 640ms steps(3) infinite;
 }
@@ -793,7 +793,13 @@ const HERO = {
   altura:       220,        // en vh: alto del tramo inicial del hero
   easing:       1.0,        // 1.0 = lineal
   concurrencia: 6,
-  video:        "hero.mp4"
+  video:        "hero.mp4",
+  /* Que tanto se acerca la imagen. 1 = llena la pantalla recortando;
+     0 = se ve el cuadro completo, mas alejado. El clip vertical viene
+     encuadrado muy cerca, por eso en telefono se baja. Sube o baja
+     "movil" a gusto: 0.15 esta cerca del cuadro completo. */
+  encuadre:      1.00,
+  encuadreMovil: 0.15
 };
 
 const WEBHOOK_URL = "https://n8n-production-bd35f6.up.railway.app/webhook/c87a4166-4550-4f77-ae94-ad1306976cff";
@@ -823,6 +829,11 @@ const usaMovil = window.matchMedia('(max-width: 900px) and (orientation: portrai
                  && HERO.totalMovil > 0;
 const CARPETA  = usaMovil ? HERO.carpetaMovil : HERO.carpeta;
 const TOTAL    = usaMovil ? HERO.totalMovil   : HERO.total;
+const ENCUADRE = usaMovil ? HERO.encuadreMovil : HERO.encuadre;
+
+/* color de fondo para las franjas, en opaco y en transparente */
+const FONDO   = '#04080f';
+const FONDO_T = 'rgba(4,8,15,0)';
 
 const ruta = n => CARPETA + '/frame_' + String(n).padStart(4, '0') + '.webp';
 
@@ -830,6 +841,7 @@ const imgs  = new Array(TOTAL);
 const listo = new Array(TOTAL).fill(false);
 let descargados = 0;
 let ultimoIdx = -1;
+let ultimoRealce = '';
 
 /* --- tamano del lienzo, con devicePixelRatio limitado a 2 ---
    Se mide sobre el contenedor (alto 100lvh), no sobre window.innerHeight:
@@ -849,13 +861,41 @@ function medir() {
   pintarAhora();
 }
 
-/* --- dibujado tipo "cover" --- */
+/* --- dibujado con encuadre regulable ---
+   ENCUADRE 1 = "cover": llena la pantalla recortando lo que sobre.
+   ENCUADRE 0 = "contain": se ve el cuadro completo, mas alejado, con una
+   franja del color del fondo arriba y abajo (difuminada, no un corte seco).
+   El clip vertical viene encuadrado muy cerca, asi que en telefono se aleja. */
 function dibujarImagen(img) {
   if (!img || !img.naturalWidth) return;
   const cw = lienzo.width, ch = lienzo.height;
-  const r  = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
-  const w  = img.naturalWidth * r, h = img.naturalHeight * r;
-  ctx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
+  const rLleno = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
+  const rEntero = Math.min(cw / img.naturalWidth, ch / img.naturalHeight);
+  const r = rEntero + (rLleno - rEntero) * ENCUADRE;
+  const w = img.naturalWidth * r, h = img.naturalHeight * r;
+  const x = (cw - w) / 2, y = (ch - h) / 2;
+
+  if (x > 0.5 || y > 0.5) { ctx.fillStyle = FONDO; ctx.fillRect(0, 0, cw, ch); }
+  ctx.drawImage(img, x, y, w, h);
+
+  /* degradado en los bordes para que la franja no se note como un corte */
+  const pluma = Math.round(Math.min(cw, ch) * 0.10);
+  if (y > 0.5) {
+    let g = ctx.createLinearGradient(0, y, 0, y + pluma);
+    g.addColorStop(0, FONDO); g.addColorStop(1, FONDO_T);
+    ctx.fillStyle = g; ctx.fillRect(0, y, cw, pluma);
+    g = ctx.createLinearGradient(0, y + h, 0, y + h - pluma);
+    g.addColorStop(0, FONDO); g.addColorStop(1, FONDO_T);
+    ctx.fillStyle = g; ctx.fillRect(0, y + h - pluma, cw, pluma);
+  }
+  if (x > 0.5) {
+    let g = ctx.createLinearGradient(x, 0, x + pluma, 0);
+    g.addColorStop(0, FONDO); g.addColorStop(1, FONDO_T);
+    ctx.fillStyle = g; ctx.fillRect(x, 0, pluma, ch);
+    g = ctx.createLinearGradient(x + w, 0, x + w - pluma, 0);
+    g.addColorStop(0, FONDO); g.addColorStop(1, FONDO_T);
+    ctx.fillStyle = g; ctx.fillRect(x + w - pluma, 0, pluma, ch);
+  }
 }
 
 /* --- si el frame exacto no cargo aun, se usa el mas cercano que si --- */
@@ -942,10 +982,20 @@ function pintarAhora() {
     dibujarImagen(masCercano(idx));
   }
 
-  /* el scrim se oscurece al pasar del hero para que el texto se lea */
+  /* El scrim se oscurece al salir del hero para que el texto se lea, pero
+     afloja en el ultimo tramo: ahi el propio video ya es agua profunda y
+     sumar oscuridad sobre oscuridad era lo que enlodaba el final. */
   const recorridoHero = Math.max(1, heroSec.offsetHeight - alto);
-  const th = Math.min(1, y / (recorridoHero * 0.85));
-  scrim.style.opacity = (0.32 + th * 0.50).toFixed(3);
+  const th    = Math.min(1, y / (recorridoHero * 0.85));
+  const final = Math.max(0, (p - 0.60) / 0.40);
+  scrim.style.opacity = (0.30 + th * 0.36 - final * 0.12).toFixed(3);
+
+  /* y se compensa la caida de luz del material con un realce progresivo */
+  const realce = (1 + final * 0.20).toFixed(2);
+  if (realce !== ultimoRealce) {
+    ultimoRealce = realce;
+    lienzo.style.filter = 'brightness(' + realce + ') saturate(' + (1 + final * 0.12).toFixed(2) + ')';
+  }
 
   /* barra de navegacion */
   navBar.classList.toggle('solida', y > alto * 0.85);
