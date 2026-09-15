@@ -1132,5 +1132,240 @@ medir();
 pintarAhora();
 arrancar();
 </script>
+
+<!-- ================= CHATBOT n8n ================= -->
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+<script type="module">
+  import { createChat } from 'https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js';
+
+  createChat({
+    webhookUrl: 'https://n8n-production-7683.up.railway.app/webhook/d093d417-2cd3-4c38-aa34-6da222d1eafe/chat',
+    initialMessages: [
+      '¡Hola! 👋 Soy el asistente virtual de Swimmer Descending.',
+      '¿En qué te puedo ayudar? Pregúntame sobre cursos, horarios, precios o equipo.'
+    ],
+    i18n: {
+      en: {
+        title: '💬 Asistente Swimmer',
+        subtitle: 'Respondemos al momento',
+        inputPlaceholder: 'Escribe tu pregunta...',
+        getStarted: 'Nueva conversación',
+        closeButtonTooltip: 'Cerrar chat'
+      }
+    }
+  });
+</script>
+
+<!-- Estilos personalizados para que el chat combine con el sitio -->
+<style>
+  /* ---------- botón flotante del chat ---------- */
+  /* Oscuro y translúcido como el nav, con un brillo sutil del acento */
+  .n8n-chat .chat-toggle {
+    background: rgba(6, 14, 25, .82) !important;
+    backdrop-filter: blur(18px) saturate(1.3) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(1.3) !important;
+    border: 1px solid rgba(56, 189, 248, .25) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .45),
+                inset 0 1px 0 rgba(255,255,255,.06) !important;
+    width: 58px !important;
+    height: 58px !important;
+    border-radius: 16px !important;
+    transition: transform .3s cubic-bezier(.22,1,.36,1),
+                box-shadow .3s ease,
+                border-color .3s ease !important;
+  }
+  .n8n-chat .chat-toggle:hover {
+    transform: scale(1.06) translateY(-2px) !important;
+    border-color: rgba(56, 189, 248, .50) !important;
+    box-shadow: 0 14px 44px rgba(0, 0, 0, .50),
+                0 0 24px rgba(56, 189, 248, .15),
+                inset 0 1px 0 rgba(255,255,255,.08) !important;
+  }
+  /* Color del icono SVG dentro del botón */
+  .n8n-chat .chat-toggle svg {
+    color: var(--acento, #38bdf8) !important;
+    fill: none !important;
+    stroke: var(--acento, #38bdf8) !important;
+    width: 26px !important;
+    height: 26px !important;
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, .35)) !important;
+  }
+
+  /* ---------- ventana del chat ---------- */
+  .n8n-chat .chat-window {
+    border-radius: 18px !important;
+    border: 1px solid rgba(255,255,255,.08) !important;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, .55),
+                0 0 0 1px rgba(56, 189, 248, .08) !important;
+    overflow: hidden !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  }
+
+  /* ---------- encabezado del chat ---------- */
+  .n8n-chat .chat-header {
+    background: rgba(4, 8, 15, .94) !important;
+    backdrop-filter: blur(18px) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, .07) !important;
+    color: #eaf1f7 !important;
+    padding: 18px 20px !important;
+  }
+  .n8n-chat .chat-header .chat-title {
+    color: #eaf1f7 !important;
+    font-weight: 700 !important;
+    font-size: 17px !important;
+  }
+  .n8n-chat .chat-header .chat-subtitle {
+    color: #94a8bb !important;
+    font-size: 13px !important;
+  }
+
+  /* ---------- cuerpo del chat ---------- */
+  .n8n-chat .chat-body,
+  .n8n-chat .chat-messages-list {
+    background: rgba(4, 8, 15, .94) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+
+  /* ---------- mensajes ---------- */
+  .n8n-chat .chat-message-bot .chat-message-bubble {
+    background: rgba(255, 255, 255, .05) !important;
+    border: 1px solid rgba(255, 255, 255, .08) !important;
+    color: #dce8f2 !important;
+    border-radius: 16px 16px 16px 4px !important;
+    font-size: 14.5px !important;
+    line-height: 1.6 !important;
+  }
+  .n8n-chat .chat-message-user .chat-message-bubble {
+    background: rgba(56, 189, 248, .15) !important;
+    border: 1px solid rgba(56, 189, 248, .25) !important;
+    color: #eaf1f7 !important;
+    border-radius: 16px 16px 4px 16px !important;
+    font-weight: 500 !important;
+    font-size: 14.5px !important;
+    line-height: 1.6 !important;
+  }
+
+  /* ---------- zona de input: SIMÉTRICA y profesional ---------- */
+  .n8n-chat .chat-input {
+    background: rgba(4, 8, 15, .96) !important;
+    border-top: 1px solid rgba(255, 255, 255, .07) !important;
+    padding: 14px 16px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  .n8n-chat .chat-input form,
+  .n8n-chat .chat-input > div {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+  .n8n-chat .chat-input textarea,
+  .n8n-chat .chat-input input[type="text"],
+  .n8n-chat .chat-input input:not([type="submit"]) {
+    flex: 1 !important;
+    background: rgba(255, 255, 255, .05) !important;
+    border: 1px solid rgba(255, 255, 255, .10) !important;
+    color: #eaf1f7 !important;
+    border-radius: 12px !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    font-family: inherit !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    resize: none !important;
+    margin: 0 !important;
+    line-height: 1.4 !important;
+    transition: border-color .25s ease, box-shadow .25s ease !important;
+  }
+  .n8n-chat .chat-input textarea::placeholder,
+  .n8n-chat .chat-input input::placeholder {
+    color: #6b839a !important;
+  }
+  .n8n-chat .chat-input textarea:focus,
+  .n8n-chat .chat-input input:focus {
+    border-color: rgba(56, 189, 248, .45) !important;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, .10) !important;
+    outline: none !important;
+  }
+
+  /* ---------- botón de enviar: simétrico con el input ---------- */
+  .n8n-chat .chat-input button[type="submit"],
+  .n8n-chat .chat-input .chat-send-button {
+    background: rgba(56, 189, 248, .14) !important;
+    border: 1px solid rgba(56, 189, 248, .28) !important;
+    color: #38bdf8 !important;
+    border-radius: 12px !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    transition: background .25s ease, border-color .25s ease, transform .25s ease !important;
+    cursor: pointer !important;
+  }
+  .n8n-chat .chat-input button[type="submit"]:hover,
+  .n8n-chat .chat-input .chat-send-button:hover {
+    background: rgba(56, 189, 248, .22) !important;
+    border-color: rgba(56, 189, 248, .45) !important;
+    transform: scale(1.05) !important;
+  }
+  .n8n-chat .chat-input button[type="submit"] svg,
+  .n8n-chat .chat-input .chat-send-button svg {
+    width: 20px !important;
+    height: 20px !important;
+    color: #38bdf8 !important;
+    filter: drop-shadow(0 0 4px rgba(56, 189, 248, .30)) !important;
+  }
+
+  /* ---------- botón "nueva conversación" ---------- */
+  .n8n-chat .new-conversation-button,
+  .n8n-chat .chat-get-started-button {
+    background: rgba(56, 189, 248, .12) !important;
+    border: 1px solid rgba(56, 189, 248, .25) !important;
+    color: #38bdf8 !important;
+    border-radius: 999px !important;
+    font-weight: 700 !important;
+    padding: 12px 24px !important;
+    transition: background .25s ease, border-color .25s ease, transform .25s ease !important;
+  }
+  .n8n-chat .new-conversation-button:hover,
+  .n8n-chat .chat-get-started-button:hover {
+    background: rgba(56, 189, 248, .20) !important;
+    border-color: rgba(56, 189, 248, .40) !important;
+    transform: translateY(-2px) !important;
+  }
+
+  /* ---------- z-index alto para que quede sobre todo ---------- */
+  .n8n-chat {
+    z-index: 9999 !important;
+  }
+
+  /* ---------- animación sutil de respiración en el botón ---------- */
+  @keyframes chatRespirar {
+    0%, 100% { border-color: rgba(56,189,248,.22); box-shadow: 0 8px 32px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06); }
+    50%      { border-color: rgba(56,189,248,.40); box-shadow: 0 8px 32px rgba(0,0,0,.45), 0 0 18px rgba(56,189,248,.10), inset 0 1px 0 rgba(255,255,255,.06); }
+  }
+  .n8n-chat .chat-toggle {
+    animation: chatRespirar 3.5s ease-in-out infinite !important;
+  }
+  .n8n-chat .chat-toggle:hover {
+    animation: none !important;
+  }
+
+  /* ---------- scrollbar del chat ---------- */
+  .n8n-chat .chat-messages-list::-webkit-scrollbar { width: 5px; }
+  .n8n-chat .chat-messages-list::-webkit-scrollbar-track { background: transparent; }
+  .n8n-chat .chat-messages-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 4px; }
+  .n8n-chat .chat-messages-list::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.22); }
+</style>
+
 </body>
 </html>
